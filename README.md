@@ -1,0 +1,299 @@
+<div align="center">
+
+
+```
+╔═════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                     ║
+║     ███████╗ ██╗       █████╗  ████████╗ ██████╗  ██╗      ██╗      ███╗   ███╗     ║
+║     ██╔════╝ ██║      ██╔══██╗ ╚══██╔══╝ ╚════██╗ ██║      ██║      ████╗ ████║     ║
+║     █████╗   ██║      ███████║    ██║     █████╔╝ ██║      ██║      ██╔████╔██║     ║
+║     ██╔══╝   ██║      ██╔══██║    ██║    ██╔═══╝  ██║      ██║      ██║╚██╔╝██║     ║
+║     ██║      ███████╗ ██║  ██║    ██║    ███████╗ ███████╗ ███████╗ ██║ ╚═╝ ██║     ║
+║     ╚═╝      ╚══════╝ ╚═╝  ╚═╝    ╚═╝    ╚══════╝ ╚══════╝ ╚══════╝ ╚═╝     ╚═╝     ║
+║                                                                                     ║
+║                    Flatten codebase → single text → paste to LLM                    ║
+║                                                                                     ║
+╚═════════════════════════════════════════════════════════════════════════════════════╝
+```
+
+**Flatten your entire codebase into a single text file — ready to paste into any LLM.**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Bash](https://img.shields.io/badge/Shell-Bash%204%2B-green.svg)](https://www.gnu.org/software/bash/)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](#)
+
+</div>
+
+---
+
+## Why flat2llm?
+
+When working with LLMs like ChatGPT, Claude, or Gemini, you often need to share your entire project context. Manually copying files one by one is tedious and error-prone. **flat2llm** solves this by:
+
+- Scanning your project directory recursively
+- Intelligently filtering out binaries, lock files, build artifacts, and other noise
+- Producing a single, well-structured text file containing a directory tree and all source code
+- Optionally copying the result straight to your clipboard
+
+The output is optimized for LLM consumption — clean, structured, and within token-friendly sizes.
+
+---
+
+## Features
+
+| Feature | Description |
+|---|---|
+| **Interactive TUI** | Beautiful terminal UI with menu-driven configuration |
+| **CLI Mode** | Scriptable one-liner for CI/CD or quick usage |
+| **Smart Filtering** | Auto-ignores 100+ binary extensions, lock files, build dirs, `node_modules`, `.git`, etc. |
+| **Binary Detection** | Uses MIME type + null-byte heuristic to skip non-text files |
+| **Tree Generation** | Built-in pure-Bash tree renderer (no external `tree` dependency) |
+| **Size Control** | Configurable per-file size limit (default: 100 KB) |
+| **Clipboard Support** | One flag to copy output to clipboard (`pbcopy`, `xclip`, `xsel`, `wl-copy`) |
+| **Zero Dependencies** | Pure Bash 4+ — no Python, no Node, no external tools required |
+| **One-command Install** | `--install` copies to `~/scripts` and updates your PATH |
+
+---
+
+## Installation
+
+### Quick Install (recommended)
+
+```bash
+git clone https://github.com/x66ccff/flat2llm.sh.git
+cd flat2llm
+bash install.sh --install
+source ~/.bashrc
+```
+
+This copies the script to `~/scripts/flat2llm`, makes it executable, and adds `~/scripts` to your `PATH` in `~/.bashrc` (and `~/.zshrc` if present).
+
+### Manual Install
+
+```bash
+# Download the script
+curl -fsSL https://raw.githubusercontent.com/x66ccff/flat2llm.sh/main/install.sh -o flat2llm
+chmod +x flat2llm
+
+# Move to somewhere on your PATH
+mv flat2llm /usr/local/bin/
+```
+
+### No Install (run directly)
+
+```bash
+bash install.sh ./my-project
+```
+
+---
+
+## Usage
+
+### Interactive TUI
+
+Simply run without arguments to launch the interactive menu:
+
+```bash
+flat2llm
+```
+
+The TUI lets you configure:
+
+1. **Target Directory** — the project to flatten
+2. **Output File** — where to save the result (default: `flat_output.txt`)
+3. **Max File Size** — skip files larger than this (default: 100 KB)
+4. **Copy to Clipboard** — toggle clipboard copy on/off
+
+Then press `s` to start processing or `t` to preview the tree only.
+
+### CLI Mode
+
+```bash
+# Flatten current directory
+flat2llm .
+
+# Flatten a specific project
+flat2llm ./my-project
+
+# Custom output file and size limit
+flat2llm -o context.txt -s 200 ./src
+
+# Flatten and copy to clipboard
+flat2llm -c ./project
+
+# Print directory tree only (no file contents)
+flat2llm -t ./project
+```
+
+### Options
+
+| Flag | Long Form | Description | Default |
+|---|---|---|---|
+| `-o` | `--output <FILE>` | Output file path | `flat_output.txt` |
+| `-s` | `--max-size <KB>` | Max file size in KB to include | `100` |
+| `-c` | `--clipboard` | Also copy output to clipboard | `false` |
+| `-t` | `--tree-only` | Print directory tree only | `false` |
+| | `--install` | Install to `~/scripts` and configure PATH | — |
+| `-h` | `--help` | Show help message | — |
+| `-v` | `--version` | Show version | — |
+
+---
+
+## Output Format
+
+The generated file follows a structured format optimized for LLM context windows:
+
+```
+# Codebase Snapshot
+# Generated by flat2llm v1.2.0
+# Date: 2026-04-13 17:00:00 UTC
+# Source: /home/user/my-project
+# Files: 42 | Total Size: 156 KB | Max Per-File: 100 KB
+
+================================================================================
+  PROJECT STRUCTURE
+================================================================================
+
+my-project/
+├── src/
+│   ├── main.py
+│   ├── utils.py
+│   └── config/
+│       └── settings.yaml
+├── tests/
+│   └── test_main.py
+├── README.md
+└── pyproject.toml
+
+================================================================================
+  File: src/main.py
+================================================================================
+
+<file contents here>
+
+================================================================================
+  File: src/utils.py
+================================================================================
+
+<file contents here>
+
+...
+
+================================================================================
+  END OF SNAPSHOT (42 files, 156 KB)
+================================================================================
+```
+
+---
+
+## What Gets Filtered Out
+
+flat2llm applies aggressive but sensible filters to keep the output clean and focused on source code.
+
+### Ignored Directories
+
+> `.git`, `node_modules`, `vendor`, `__pycache__`, `.venv`, `venv`, `dist`, `build`, `.next`, `.nuxt`, `coverage`, `.terraform`, `.gradle`, `logs`, `tmp`, `temp`, and many more.
+
+### Ignored File Extensions
+
+> **Binaries**: `.pyc`, `.o`, `.so`, `.dll`, `.exe`, `.wasm`
+> **Images**: `.jpg`, `.png`, `.gif`, `.svg`, `.webp`, `.ico`
+> **Media**: `.mp3`, `.mp4`, `.avi`, `.mov`, `.wav`
+> **Archives**: `.zip`, `.tar`, `.gz`, `.rar`, `.7z`
+> **Documents**: `.pdf`, `.doc`, `.docx`, `.xls`, `.ppt`
+> **Fonts**: `.woff`, `.woff2`, `.ttf`, `.eot`
+> **Data**: `.db`, `.sqlite`, `.pkl`, `.parquet`, `.npy`
+> **Source Maps**: `.map`
+
+### Ignored Files
+
+> `.DS_Store`, `Thumbs.db`, `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `Cargo.lock`, `poetry.lock`, `go.sum`, and other lock/cache files.
+
+### Additional Filters
+
+- **Empty files** are skipped
+- **Symlinks** are skipped
+- **Binary files** are detected via MIME type and null-byte scanning
+- **Minified files** (`*.min.js`, `*.min.css`, `*.bundle.js`, `*.chunk.js`) are skipped
+
+---
+
+## Examples
+
+### Feed your project to ChatGPT / Claude
+
+```bash
+flat2llm -c ./my-app
+# Output is now in your clipboard — paste directly into the LLM chat
+```
+
+### Generate context for a code review prompt
+
+```bash
+flat2llm -o review_context.txt -s 50 ./src
+echo "Please review the following codebase for security issues:" | cat - review_context.txt > prompt.txt
+```
+
+### Quick project overview (tree only)
+
+```bash
+flat2llm -t ./my-monorepo
+```
+
+### Use in a script / CI pipeline
+
+```bash
+#!/bin/bash
+flat2llm -o /tmp/snapshot.txt ./src
+# Upload or process the snapshot...
+```
+
+---
+
+## Requirements
+
+- **Bash 4.0+** (macOS users: the default `/bin/bash` is 3.x — use `brew install bash`)
+- **Coreutils**: `find`, `sort`, `stat`, `file`, `head`, `wc` (standard on Linux/macOS)
+- **Optional**: `pbcopy` / `xclip` / `xsel` / `wl-copy` (for `--clipboard` feature)
+
+---
+
+## FAQ
+
+**Q: Why not just use `find . -type f -exec cat {} \;`?**
+A: That includes binaries, lock files, build artifacts, images, and other noise that wastes LLM tokens and confuses the model. flat2llm intelligently filters content and provides structured output with a project tree.
+
+**Q: Can I customize which files/directories are ignored?**
+A: Currently the ignore lists are defined at the top of the script. Fork and edit the `IGNORE_DIRS`, `IGNORE_EXTENSIONS`, and `IGNORE_FILES` arrays to suit your needs. Custom config file support is planned for a future release.
+
+**Q: What's the maximum project size this can handle?**
+A: flat2llm works well for small-to-medium projects. For very large codebases (thousands of files), consider targeting a subdirectory (e.g., `flat2llm ./src`) and adjusting `--max-size` to stay within your LLM's context window.
+
+**Q: Does it work on macOS?**
+A: Yes, but ensure you're using Bash 4+ (`brew install bash`). The script uses `${ext,,}` for lowercase conversion which requires Bash 4.
+
+---
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+---
+
+<div align="center">
+
+**If flat2llm saves you time, give it a ⭐ on GitHub!**
+
+</div>
